@@ -2,7 +2,7 @@ package com.eks.messagingservice.config;
 
 import com.eks.messagingservice.services.HandshakeService;
 import com.eks.messagingservice.services.MessageService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -12,12 +12,11 @@ import org.springframework.web.socket.WebSocketHandler;
 
 @Configuration
 @EnableWebSocket
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketConfigurer {
 
-    @Autowired
-    private HandshakeService handshakeService;
-    @Autowired
-    private MessageService messageService;
+    private final HandshakeService handshakeService;
+    private final MessageService messageService;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
