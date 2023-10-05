@@ -15,18 +15,11 @@ import java.util.Map;
 @Component
 public class ArduinoHandShakeInterceptor implements HandshakeInterceptor {
 
-    @Autowired
-    private HandshakeService handshakeService;
-
-    public ArduinoHandShakeInterceptor(HandshakeService handshakeService) {
-        this.handshakeService = handshakeService;
-    }
-
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
         String arduinoID = request.getHeaders().getFirst("arduinoID");
-        if (arduinoID != null && handshakeService.isIdValid(arduinoID)) {
+        if (arduinoID != null) {
             attributes.put("arduinoID", arduinoID);
             return true;
         } else {

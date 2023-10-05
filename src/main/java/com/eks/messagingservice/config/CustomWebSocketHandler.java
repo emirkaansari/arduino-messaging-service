@@ -1,10 +1,11 @@
 package com.eks.messagingservice.config;
 
 import com.eks.messagingservice.models.Message;
+import com.eks.messagingservice.services.ArduinoFriendService;
+import com.eks.messagingservice.services.ArduinoService;
 import com.eks.messagingservice.services.MessageService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
@@ -12,6 +13,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -20,20 +22,44 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
 
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private ArduinoService arduinoService;
+    @Autowired
+    private ArduinoFriendService arduinoFriendService;
 
-    public CustomWebSocketHandler(MessageService messageService) {
+    public CustomWebSocketHandler(MessageService messageService, ArduinoService arduinoService, ArduinoFriendService arduinoFriendService) {
         this.messageService = messageService;
+        this.arduinoService = arduinoService;
+        this.arduinoFriendService = arduinoFriendService;
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         sessions.add(session);
+        String arduinoId = (String) session.getAttributes().get("arduinoID");
+        arduinoService.changeOnlineStatus(arduinoId, "online");
         sendOnlineUserCount();
+        List<String> friendIds = arduinoFriendService.getOnlineFriendIds(arduinoId);
+        if (!friendIds.isEmpty()) {
+            String arduinoUserName = arduinoService.findOwnerUsernameById(arduinoId);
+            for (int i = 0; i < friendIds.size(); i++) {
+                WebSocketSession socketSession = findSessionByArduinoID(friendIds.get(i));
+                if (socketSession != null && socketSession.isOpen()) {
+                    socketSession.sendMessage(new TextMessage("Your friend "
+                            + arduinoUserName + " is online!"));
+                } else {
+                    break;
+                }
+            }
+        }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         sessions.remove(session);
+        String arduinoId = (String) session.getAttributes().get("arduinoID");
+        arduinoService.changeOnlineStatus(arduinoId, "offline");
+        arduinoService.updateLastSeen(arduinoId);
         sendOnlineUserCount();
     }
 
@@ -53,7 +79,6 @@ public class CustomWebSocketHandler extends TextWebSocketHandler {
             receiverSession.sendMessage(new TextMessage(arduinoMessage.getContext() + " from: "
                     + arduinoMessage.getSenderArduinoId()));
         } else {
-            // Receiver is not online, send a message to sender
             WebSocketSession senderSession = findSessionByArduinoID(arduinoMessage.getSenderArduinoId());
             if (senderSession != null && senderSession.isOpen()) {
                 senderSession.sendMessage(new TextMessage("User "

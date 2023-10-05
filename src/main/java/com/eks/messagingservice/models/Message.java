@@ -22,4 +22,3 @@ public class Message {
     @Column(name = "date", nullable = false, updatable = false)
     private Date date;
 }
-
