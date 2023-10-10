@@ -1,6 +1,7 @@
 package com.eks.messagingservice.utils;
 
 
+import com.eks.messagingservice.models.Arduino;
 import com.eks.messagingservice.models.ArduinoFriend;
 import com.eks.messagingservice.services.ArduinoService;
 import com.fasterxml.jackson.core.JacksonException;
@@ -33,14 +34,21 @@ public class ArduinoFriendDeserializer extends StdDeserializer<ArduinoFriend> {
         JsonNode node = jp.getCodec().readTree(jp);
 
         String friendShipId = node.get("friendShipId").asText();
-        String arduino1 = node.get("arduino1").asText();
-        String arduino2 = node.get("arduino2").asText();
+        String arduinoId1 = node.get("arduino1").asText();
+        String arduinoId2 = node.get("arduino2").asText();
 
         ArduinoFriend arduinoFriend = new ArduinoFriend();
         arduinoFriend.setFriendShipId(Long.parseLong(friendShipId));
 
-        arduinoFriend.setArduino1(arduinoService.findById(arduino1));
-        arduinoFriend.setArduino2(arduinoService.findById(arduino2));
+        Arduino arduino1 = arduinoService.findById(arduinoId1);
+        Arduino arduino2 = arduinoService.findById(arduinoId2);
+
+        if (arduino1 == null || arduino2 == null) {
+            throw new RuntimeException("Arduino doesn't exist in db.");
+        }
+
+        arduinoFriend.setArduino1(arduino1);
+        arduinoFriend.setArduino2(arduino2);
 
         return arduinoFriend;
     }

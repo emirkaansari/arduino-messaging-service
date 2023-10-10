@@ -34,4 +34,12 @@ public class ArduinoService {
     public Arduino findById(String arduinoId) {
         return arduinoRepository.findById(arduinoId).orElse(null);
     }
+
+    public Arduino saveArduino(Arduino arduino) {
+        return arduinoRepository.save(arduino);
+    }
+
+    public void deleteArduino(Arduino arduino) {
+        arduinoRepository.delete(arduino);
+    }
 }

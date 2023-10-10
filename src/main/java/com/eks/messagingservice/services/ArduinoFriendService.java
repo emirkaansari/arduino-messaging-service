@@ -4,6 +4,7 @@ import com.eks.messagingservice.models.ArduinoFriend;
 import com.eks.messagingservice.repository.ArduinoFriendRepository;
 import com.eks.messagingservice.repository.ArduinoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,4 +24,8 @@ public class ArduinoFriendService {
         arduinoFriendRepository.save(arduinoFriend);
     }
 
+    @Modifying
+    public void deleteArduinoFriend(ArduinoFriend arduinoFriend) {
+        arduinoFriendRepository.delete(arduinoFriend);
+    }
 }
